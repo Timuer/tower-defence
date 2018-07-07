@@ -212,7 +212,6 @@ class GameScene extends Scene {
         return positions
     }
 
-
     setupEnemies() {
         this.enemyCount = 20
         this.enemies = []
@@ -308,6 +307,7 @@ class GameScene extends Scene {
     updateBullets(tower) {
         var t = tower
         for (var b of t.bullets) {
+            // log("bullet", b)
             for (var e of this.enemies) {
                 if (this.isSquareCollide(b.x, b.y, b.width, b.height, e.x, e.y, e.width, e.height)) {
                     // log("collide")

@@ -81,7 +81,9 @@ class Tower extends AbstractTexture {
     }
 
     updateBullets() {
-        this.coolDown -= 1
+        if (this.coolDown > 0) {
+            this.coolDown -= 1
+        }
         if (this.coolDown == 0 && this.target) {
             this.coolDown = 10
             var bulletImage = this.game.imageByName("bullet")
