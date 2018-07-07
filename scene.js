@@ -147,7 +147,7 @@ class GameScene extends Scene {
         var h = this.game.canvas.height
         for (var i = 0; i < 4; i++) {
             var name = "model" + i
-            var t = new TowerModel(this.game, this.game.imageByName(name))
+            var t = new TowerModel(this.game, this.game.imageByName(name), this.game.imageByName("greymodel" + i))
             t.x = w - (i + 1) * t.width
             t.y = h - t.height
             this.addModel(t)
@@ -234,11 +234,13 @@ class GameScene extends Scene {
     chooseTower(x, y) {
         for (var m of this.models) {
             if (isPointInSquare(x, y, m.x, m.y, m.width, m.height)) {
-                var t = m.createTower()
-                // 鼠标位置在塔模型上的偏移
-                t.towerOffsetX = x - m.x
-                t.towerOffsetY = y - m.y
-                this.chosenTower = t
+                if (m.useable) {
+                    var t = m.createTower()
+                    // 鼠标位置在塔模型上的偏移
+                    t.towerOffsetX = x - m.x
+                    t.towerOffsetY = y - m.y
+                    this.chosenTower = t
+                }
             }
         }
     }

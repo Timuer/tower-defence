@@ -28,18 +28,63 @@ class AbstractTexture {
 }
 
 class TowerModel extends AbstractTexture {
-    constructor(game, image) {
+    constructor(game, image, greyImage, coolDownTime=200) {
         super(game, image)
         this.towerOffsetX = 0
         this.towerOffsetY = 0
+        this.coolDownTime = coolDownTime
+        this.coolDown = 0
+        this.greyImage = greyImage
+        this.useable = true
     }
 
     createTower() {
+        this.coolDown = this.coolDownTime
+        this.useable = false
         var t = new Tower(this.game, this.image)
         t.x = this.x
         t.y = this.y
         return t
     }
+
+    update() {
+        super.update()
+        if (this.coolDown > 0) {
+            this.coolDown -= 1
+        }
+        if (this.coolDown == 0) {
+            this.useable = true
+        }
+    }
+
+    draw() {
+        this.drawCoolDownBar()
+    }
+
+    drawCoolDownBar() {
+        var x = this.x
+        var y = this.y
+        var w = this.width
+        var h = this.height
+        var proportion = this.coolDown / this.coolDownTime
+        var ctx = this.game.context
+        ctx.drawImage(this.greyImage.img, this.x, this.y)
+        var sx = 0
+        var sy = this.image.height * proportion
+        var sWidth = this.image.width
+        var sHeight = this.image.height * (1 - proportion)
+        var dx = this.x
+        var dy = this.y + sy
+        var dWidth = sWidth
+        var dHeight = sHeight
+        ctx.drawImage(this.image.img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+
+        // ctx.fillStyle = "rgba(0, 255, 255, 0.3)"
+        // ctx.fillRect(x, y, w, h)
+        // ctx.fillStyle = "rgba(0, 255, 255, 0.6)"
+        // ctx.fillRect(x, y + h * proportion, w, h * (1 - proportion))
+    }
+
 }
 
 class Tower extends AbstractTexture {
@@ -97,12 +142,6 @@ class Tower extends AbstractTexture {
         }
     }
 
-    drawBullets() {
-        for (var b of this.bullets) {
-            b.draw()
-        }
-    }
-
     update() {
         var t = this.target
         if (t) {
@@ -129,14 +168,22 @@ class Tower extends AbstractTexture {
         this.drawBullets()
     }
 
+    drawBullets() {
+        for (var b of this.bullets) {
+            b.draw()
+        }
+    }
+
     drawRange() {
         var centerX = this.x + this.width / 2
         var centerY = this.y + this.height / 2
         var ctx = this.game.context
-        ctx.fillStyle = "rgba(0, 255, 255, 0.5)"
+        ctx.fillStyle = "rgba(0, 255, 255, 0.3)"
+        ctx.strokeStyle = "rgba(0, 255, 255, 1)"
         // 如果直接使用arc函数将会连续绘制
         ctx.beginPath()
         ctx.arc(centerX, centerY, this.range, 0, Math.PI * 2)
+        ctx.stroke()
         ctx.fill()
         ctx.closePath()
     }
@@ -173,6 +220,7 @@ class Enemy extends AbstractTexture {
 
     moveOnRoute() {
         if (this.routeIndex == this.route.length) {
+            this.game.currentScene = "end"
             return
         }
         var step = this.route[this.routeIndex]
