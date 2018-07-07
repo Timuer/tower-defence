@@ -27,134 +27,6 @@ class AbstractTexture {
     }
 }
 
-class Player extends AbstractTexture {
-    constructor(game, image) {
-        super(game, image)
-        this.x = game.canvas.width / 5
-        this.y = game.canvas.height / 2
-        this.speedX = 5
-        this.speedY = 0
-        this.jumpHeight = 20
-        this.gravity = 0.3
-        this.rotation = 0
-        this.animation = new Animation(game, this.x, this.y)
-        this.setupActions()
-    }
-
-    setupActions() {
-        var p = this
-        p.game.registerAction("a", function(keyStatus) {
-            if (keyStatus == "down") {
-                p.animation.flipX = true
-                p.move(-p.speedX, keyStatus)
-            }
-        })
-        p.game.registerAction("d", function(keyStatus) {
-            if (keyStatus == "down") {
-                p.animation.flipX = false
-                p.move(p.speedX, keyStatus)
-            }
-        })
-        p.game.registerAction("f", function(keyStatus) {
-            if (keyStatus == "down") {
-                p.jump()
-            }
-        })
-    }
-
-    jump() {
-        this.rotation = -45
-        this.y -= this.jumpHeight
-        this.speedY = 0
-    }
-
-    update() {
-        super.update()
-        // 调整玩家坐标和角度
-        if (this.rotation < 45) {
-            this.rotation += 5
-        }
-        if (this.y >= 470) {
-            this.y = 470
-        } else {
-            this.y += this.speedY
-            this.speedY += this.gravity
-        }
-        // 将与绘制动画相关的参数同步到animation中
-        this.animation.x = this.x
-        this.animation.y = this.y
-        this.animation.rotation = this.rotation
-        this.animation.update()
-    }
-
-    draw() {
-        this.animation.draw()
-    }
-
-    move(dist, keyStatus) {
-        if (keyStatus == "down") {
-            this.x += dist
-        }
-    }
-
-    debug() {
-        this.jumpHeight = config.player_jump_height.value
-    }
-}
-
-class Pipes extends AbstractTexture {
-    constructor(game, image) {
-        super(game, image)
-        this.numPipes = 5
-        this.pipesX = []
-        this.pipesH = []
-        this.pipeHeight = 420
-        this.pipeWidth = 60
-        this.pipeVerticleSpace = 200
-        this.pipeHorizontalSpace = 300
-        this.init()
-    }
-
-    init() {
-        var x = this.game.canvas.width
-        for (var i = 0; i < this.numPipes; i++) {
-            this.pipesX.push(x)
-            this.pipesH.push(rangeBetween(-400, -200))
-            x += this.pipeHorizontalSpace
-        }
-    }
-
-    update() {
-        super.update()
-        for (var i = 0; i < this.numPipes; i++) {
-            this.pipesX[i] -= 5
-        }
-        if (this.pipesX[0] < -this.pipeWidth) {
-            var newX = this.pipesX[this.numPipes - 1] + this.pipeHorizontalSpace
-            this.pipesX.push(newX)
-            this.pipesX.shift()
-            this.pipesH.push(rangeBetween(-400, -200))
-            this.pipesH.shift()
-        }
-    }
-
-    draw() {
-        var pipe = this.image
-        for (var i = 0; i < this.numPipes; i++) {
-            pipe.x = this.pipesX[i]
-            pipe.y = this.pipesH[i]
-            this.game.drawImage(pipe)
-            pipe.y = this.pipesH[i] + this.pipeHeight + this.pipeVerticleSpace
-            this.game.drawTransformImage(pipe, 0, false, true)
-        }
-    }
-
-    debug() {
-        this.pipeVerticleSpace = config.pipe_verticle_space.value
-        this.pipeHorizontalSpace = config.pipe_horizontal_space.value
-    }
-}
-
 class TowerModel extends AbstractTexture {
     constructor(game, image) {
         super(game, image)
@@ -171,13 +43,19 @@ class TowerModel extends AbstractTexture {
 }
 
 class Tower extends AbstractTexture {
-    constructor(game, image) {
+    constructor(game, image, attack=1, range=150) {
         super(game, image)
-        this.attack = 1
-        this.range = 100
+        this.attack = attack
+        this.range = range
         this.target = null
         this.rotation = 0
         this.showRange = true
+        this.setupBullets()
+    }
+
+    setupBullets() {
+        this.bullets = []
+        this.coolDown = 10
     }
 
     findTarget(enemies) {
@@ -197,6 +75,31 @@ class Tower extends AbstractTexture {
         return d < this.range
     }
 
+    addBullet(b) {
+        this.bullets.push(b)
+    }
+
+    updateBullets() {
+        this.coolDown -= 1
+        if (this.coolDown == 0) {
+            this.coolDown = 10
+            var bulletImage = this.game.imageByName("bullet")
+            var x = this.x + (this.width - bulletImage.width) / 2
+            var y = this.y + (this.height - bulletImage.height) / 2
+            var b = new Bullet(this.game, bulletImage, x, y, this.rotation)
+            this.addBullet(b)
+        }
+        for (var b of this.bullets) {
+            b.update()
+        }
+    }
+
+    drawBullets() {
+        for (var b of this.bullets) {
+            b.draw()
+        }
+    }
+
     update() {
         var t = this.target
         if (t) {
@@ -204,7 +107,17 @@ class Tower extends AbstractTexture {
             var dx = t.x - this.x
             var v = new Vector(dx, dy)
             this.rotation = v.angle()
+            // var x = Math.sin(this.rotation * Math.PI / 180)
+            // var y = Math.cos(this.rotation * Math.PI / 180)
+            // log("x y", x, y)
+            this.updateBullets()
         }
+        this.clear()
+        // log(this.x, this.y)
+    }
+
+    clear() {
+        this.bullets = this.bullets.filter(e => e.exists)
     }
 
     draw() {
@@ -214,6 +127,7 @@ class Tower extends AbstractTexture {
         if (this.showRange) {
             this.drawRange()
         }
+        this.drawBullets()
     }
 
     drawRange() {
@@ -242,7 +156,7 @@ class Enemy extends AbstractTexture {
     }
 
     setupLife() {
-        this.maxLife = 100
+        this.maxLife = 20
         this.currentLife = this.maxLife
     }
 
@@ -267,7 +181,7 @@ class Enemy extends AbstractTexture {
         var distance = step[1]
         if (this.currentDistance < distance) {
             this.move[direction]()
-            if (this.routeIndex == 0 && this.x < 0) {
+            if (this.routeIndex == 0 && this.x < 50) {
                 return
             }
             this.currentDistance += this.speed
@@ -298,5 +212,28 @@ class Enemy extends AbstractTexture {
         ctx.fillRect(this.x, this.y - 20, this.width, 10)
         ctx.fillStyle = "green"
         ctx.fillRect(this.x, this.y - 20, this.width * proportion, 10)
+    }
+}
+
+class Bullet extends AbstractTexture {
+    constructor(game, image, x, y, rotation) {
+        super(game, image)
+        this.initialX = x
+        this.initialY = y
+        this.rotation = rotation
+        this.distance = 0
+        this.speed = 10
+    }
+
+    update() {
+        this.distance += this.speed
+        this.x = this.initialX + this.distance * Math.sin(this.rotation * Math.PI / 180)
+        this.y = this.initialY + this.distance * (-Math.cos(this.rotation * Math.PI / 180))
+    }
+
+    draw() {
+        this.image.x = this.x
+        this.image.y = this.y
+        this.game.drawTransformImage(this.image, this.rotation, false, false)
     }
 }

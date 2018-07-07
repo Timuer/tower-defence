@@ -146,8 +146,9 @@ class GameScene extends Scene {
         var h = this.gridHeight
         var firstDirection = this.route[0][0]
         var firstPos = missionMap[this.game.mission][0]
-        var x = firstPos[1] * w + (w - 100) / 2
-        var y = firstPos[0] * h + (h - 80) / 2
+        // 根据栅格的宽度和敌军图片的宽度确定初始位置
+        var x = firstPos[1] * w + (w - 50) / 2
+        var y = firstPos[0] * h + (h - 45) / 2
         // log("x, y", x, y)
         var initPos = {
             right: (x, y) => [x -= w, y],
@@ -252,13 +253,31 @@ class GameScene extends Scene {
 
     updateWar() {
         for (var t of this.towers) {
-            t.findTarget(this.enemies)
-            if (t.target) {
-                t.target.currentLife -= t.attack
-                if (t.target.currentLife <= 0) {
-                    t.target.die()
-                    t.target = null
+            this.updateTarget(t)
+            this.updateBullets(t)
+        }
+    }
+
+    updateBullets(tower) {
+        var t = tower
+        for (var b of t.bullets) {
+            for (var e of this.enemies) {
+                if (this.isSquareCollide(b.x, b.y, b.width, b.height, e.x, e.y, e.width, e.height)) {
+                    log("collide")
+                    e.currentLife -= t.attack
+                    b.exists = false
                 }
+            }
+        }
+    }
+
+    updateTarget(tower) {
+        var t = tower
+        t.findTarget(this.enemies)
+        if (t.target) {
+            if (t.target.currentLife <= 0) {
+                t.target.die()
+                t.target = null
             }
         }
     }
