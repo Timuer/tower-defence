@@ -38,6 +38,45 @@ class Scene {
     }
 }
 
+class StartScene extends Scene {
+    constructor(game) {
+        super(game)
+        this.sceneName = "start"
+        this.width = this.game.canvas.width
+        this.height = this.game.canvas.height
+        this.startBtn = null
+        this.elements = []
+        this.init()
+    }
+
+    init() {
+        var startBg = new StartBg(this.game, this.game.imageByName("startBg"))
+        this.addElement(startBg)
+        var editBox = new EditBox(this.game, this.game.imageByName("editBox"))
+        editBox.x = (this.width - editBox.width) / 2
+        editBox.y = (this.height - editBox.height) / 2
+        this.addElement(editBox)
+        var btn = new StartButton(this.game, this.game.imageByName("btn"))
+        btn.x = (this.width - btn.width) / 2
+        btn.y = this.height - btn.height - 100
+        this.addElement(btn)
+        this.startBtn = btn
+        this.registerMouseAction()
+    }
+
+    registerMouseAction() {
+        var p = this
+        p.game.registerMouseAction("click", function(event) {
+            var x = event.offsetX
+            var y = event.offsetY
+            var s = p.startBtn
+            if (isPointInSquare(x, y, s.x, s.y, s.width, s.height)) {
+                p.game.currentScene = "game"
+            }
+        })
+    }
+}
+
 class GameScene extends Scene {
     constructor(game) {
         super(game)
@@ -316,6 +355,23 @@ class GameScene extends Scene {
         this.enemies = this.enemies.filter(e => e.exists === true)
     }
 }
+
+class PauseScene extends Scene {
+    constructor(game) {
+        super(game)
+        this.sceneName = "pause"
+    }
+
+    draw() {
+        var ctx = this.game.context
+        var w = this.game.canvas.width
+        var h = this.game.canvas.height
+        ctx.font = "100px sans-serif"
+        ctx.fillStyle = "#000"
+        ctx.fillText("游戏结束", w / 2 - 200, h / 2 + 50)
+    }
+}
+
 
 class EndScene extends Scene {
     constructor(game) {

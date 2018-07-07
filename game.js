@@ -20,10 +20,12 @@ class Game {
     setupScene() {
         this.scene = null
         this.scenes = {
+            "start": StartScene,
             "game": GameScene,
+            "pause": PauseScene,
             "end": EndScene,
         }
-        this.currentScene = "game"
+        this.currentScene = "start"
     }
 
     setupKeyboardActions() {
@@ -43,6 +45,7 @@ class Game {
             "down": [],
             "up": [],
             "drag": [],
+            "click": [],
         }
         window.addEventListener("mousedown", event => {
             this.onMouseDrag = true
@@ -60,6 +63,11 @@ class Game {
         window.addEventListener("mouseup", event => {
             this.onMouseDrag = false
             for (var a of this.mouseActions["up"]) {
+                a(event)
+            }
+        })
+        window.addEventListener("click", event => {
+            for (var a of this.mouseActions["click"]) {
                 a(event)
             }
         })
@@ -151,11 +159,15 @@ class Game {
         }, 1000/window.fps)
     }
 
-    update() {
+    updateScene() {
         if (this.scene.sceneName != this.currentScene) {
             this.scene = this.scenes[this.currentScene].new(this)
         }
         this.scene.update()
+    }
+
+    update() {
+        this.updateScene()
     }
 
     draw() {
@@ -167,7 +179,7 @@ class Game {
     }
 
     __start() {
-        var scene = new GameScene(this)
+        var scene = this.scenes[this.currentScene].new(this)
         this.scene = scene
 
         var g = this
@@ -179,6 +191,10 @@ class Game {
 
 var __main = function() {
     imgPaths = {
+        startBg: "img/startBg.png",
+        startTitle: "img/startTitle.png",
+        btn: "img/btn.png",
+        editBox: "img/editBox.png",
         grass0: "img/grass0.png",
         grass1: "img/grass1.png",
         grass2: "img/grass2.png",
