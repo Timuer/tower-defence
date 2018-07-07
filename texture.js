@@ -62,9 +62,10 @@ class Tower extends AbstractTexture {
         for (var e of enemies) {
             if (this.isInAttackRange(e)) {
                 this.target = e
-                break
+                return
             }
         }
+        this.target = null
     }
 
     isInAttackRange(enemy) {
@@ -81,12 +82,12 @@ class Tower extends AbstractTexture {
 
     updateBullets() {
         this.coolDown -= 1
-        if (this.coolDown == 0) {
+        if (this.coolDown == 0 && this.target) {
             this.coolDown = 10
             var bulletImage = this.game.imageByName("bullet")
             var x = this.x + (this.width - bulletImage.width) / 2
             var y = this.y + (this.height - bulletImage.height) / 2
-            var b = new Bullet(this.game, bulletImage, x, y, this.rotation)
+            var b = new Bullet(this.game, bulletImage, x, y, this.range, this.rotation)
             this.addBullet(b)
         }
         for (var b of this.bullets) {
@@ -107,13 +108,9 @@ class Tower extends AbstractTexture {
             var dx = t.x - this.x
             var v = new Vector(dx, dy)
             this.rotation = v.angle()
-            // var x = Math.sin(this.rotation * Math.PI / 180)
-            // var y = Math.cos(this.rotation * Math.PI / 180)
-            // log("x y", x, y)
-            this.updateBullets()
         }
+        this.updateBullets()
         this.clear()
-        // log(this.x, this.y)
     }
 
     clear() {
@@ -216,19 +213,24 @@ class Enemy extends AbstractTexture {
 }
 
 class Bullet extends AbstractTexture {
-    constructor(game, image, x, y, rotation) {
+    constructor(game, image, x, y, range, rotation) {
         super(game, image)
         this.initialX = x
         this.initialY = y
         this.rotation = rotation
         this.distance = 0
+        this.range = range
         this.speed = 10
+        this.exists = true
     }
 
     update() {
         this.distance += this.speed
         this.x = this.initialX + this.distance * Math.sin(this.rotation * Math.PI / 180)
         this.y = this.initialY + this.distance * (-Math.cos(this.rotation * Math.PI / 180))
+        if (this.distance > this.range) {
+            this.exists = false
+        }
     }
 
     draw() {

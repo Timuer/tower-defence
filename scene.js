@@ -80,10 +80,18 @@ class GameScene extends Scene {
     }
 
     chooseGrid(x, y) {
+        this.gridEnable = true
         var gridX = x - x % this.gridWidth
         var gridY = y - y % this.gridHeight
         this.chosenGrid = [gridX, gridY]
-        this.gridEnable = true
+        for (var m of missionMap[this.game.mission]) {
+            var x = m[1] * this.gridWidth
+            var y = m[0] * this.gridHeight
+            if (gridX == x && gridY == y) {
+                this.gridEnable = false
+                return
+            }
+        }
         if (this.grids.length > 0) {
             for (var g of this.grids) {
                 if (gridX == g[0] && gridY == g[1]) {
@@ -263,7 +271,7 @@ class GameScene extends Scene {
         for (var b of t.bullets) {
             for (var e of this.enemies) {
                 if (this.isSquareCollide(b.x, b.y, b.width, b.height, e.x, e.y, e.width, e.height)) {
-                    log("collide")
+                    // log("collide")
                     e.currentLife -= t.attack
                     b.exists = false
                 }
