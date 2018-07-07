@@ -230,22 +230,52 @@ class Tower extends AbstractTexture {
 }
 
 class Enemy extends AbstractTexture {
-    constructor(game, image) {
+    constructor(game, image, route) {
         super(game, image)
-        this.maxLife = 100
-        this.currentLife = this.maxLife
+        this.route = route
+        this.init()
+    }
+
+    init() {
+        this.setupLife()
         this.setupMovement()
     }
 
-    setupMovement() {
-        this.speed = 2
-        this.movement = {
-            "left": () => this.x += this.speed,
-            "right": () => this.x -= this.speed,
-            "up": () => this.y -= this.speed,
-            "down": () => this.y += this.speed,
-        }
+    setupLife() {
+        this.maxLife = 100
+        this.currentLife = this.maxLife
+    }
 
+    setupMovement() {
+        this.routeIndex = 0
+        this.currentDistance = 0
+        this.speed = 2
+        this.move = {
+            left: () => this.x -= this.speed,
+            right: () => this.x += this.speed,
+            up: () => this.y -= this.speed,
+            down: () => this.y += this.speed,
+        }
+    }
+
+    moveOnRoute() {
+        if (this.routeIndex == this.route.length) {
+            return
+        }
+        var step = this.route[this.routeIndex]
+        var direction = step[0]
+        var distance = step[1]
+        if (this.currentDistance < distance) {
+            this.move[direction]()
+            if (this.routeIndex == 0 && this.x < 0) {
+                return
+            }
+            this.currentDistance += this.speed
+        } else {
+            this.routeIndex += 1
+            this.currentDistance = 0
+            this.moveOnRoute()
+        }
     }
 
     die() {
@@ -253,16 +283,12 @@ class Enemy extends AbstractTexture {
     }
 
     update() {
-        this.x += 2
+        this.moveOnRoute()
     }
 
     draw() {
         super.draw()
         this.drawLifebar()
-    }
-
-    generateRoute() {
-
     }
 
     drawLifebar() {

@@ -50,6 +50,7 @@ class GameScene extends Scene {
         g.setupBackground()
         g.setupGrid()
         g.setupModels()
+        g.setupRoute()
         g.setupEnemies()
         g.setupTowers()
         g.setupActions()
@@ -106,16 +107,75 @@ class GameScene extends Scene {
         }
     }
 
+    setupRoute() {
+        this.route = []
+        var m = missionMap[this.game.mission]
+        var nextStep = ""
+        var dif = 0
+        var route = []
+        var w = 120
+        var h = 100
+        for (var i = 0; i < m.length - 1; i++) {
+            var j = i + 1
+            var x1 = m[i][1]
+            var y1 = m[i][0]
+            var x2 = m[j][1]
+            var y2 = m[j][0]
+            if (x1 == x2) {
+                dif = y2 - y1
+                if (dif < 0) {
+                    nextStep = "up"
+                } else {
+                    nextStep = "down"
+                }
+                this.route.push([nextStep, h])
+            } else {
+                dif = x2 - x1
+                if (dif < 0) {
+                    nextStep = "left"
+                } else {
+                    nextStep = "right"
+                }
+                this.route.push([nextStep, w])
+            }
+        }
+    }
+
+    getInitPositions(count) {
+        var w = this.gridWidth
+        var h = this.gridHeight
+        var firstDirection = this.route[0][0]
+        var firstPos = missionMap[this.game.mission][0]
+        var x = firstPos[1] * w + (w - 100) / 2
+        var y = firstPos[0] * h + (h - 80) / 2
+        // log("x, y", x, y)
+        var initPos = {
+            right: (x, y) => [x -= w, y],
+            up: (x, y) => [x, y -= h],
+            down: (x, y) => [x, y += h],
+        }
+        var positions = []
+        for (var i = 0; i < count; i++) {
+            var pos = initPos[firstDirection](x, y)
+            positions.push(pos)
+            var x = pos[0]
+            var y = pos[1]
+        }
+        return positions
+    }
+
+
     setupEnemies() {
+        this.enemyCount = 20
         this.enemies = []
-        var x = 0
-        for (var i = 0; i < 10; i++) {
+        var positions = this.getInitPositions(this.enemyCount)
+        // log(positions)
+        for (var i = 0; i < this.enemyCount; i++) {
             var name = "enemy" + rangeBetween(0, 5)
-            var e = new Enemy(this.game, this.game.imageByName(name))
-            e.x = x
-            e.y = 200
+            var e = new Enemy(this.game, this.game.imageByName(name), this.route)
+            e.x = positions[i][0]
+            e.y = positions[i][1]
             this.addEnemy(e)
-            x += 60
         }
     }
 
@@ -207,34 +267,6 @@ class GameScene extends Scene {
         super.update()
         this.updateWar()
         this.clear()
-    }
-
-    drawShiningBorder(x, y, w, h, color, lineWidth) {
-        var ctx = this.game.context
-        var grad = ctx.createLinearGradient(x + lineWidth / 2, 0, x - lineWidth / 2, 0)
-        grad.addColorStop(0, "#fff")
-        grad.addColorStop(0.5, color)
-        grad.addColorStop(1, "#fff")
-        ctx.fillStyle = grad
-        ctx.fillRect(x - lineWidth / 2, y, lineWidth, h)
-        grad = ctx.createLinearGradient(x, y + lineWidth, x, y - lineWidth)
-        grad.addColorStop(0, "#fff")
-        grad.addColorStop(0.5, color)
-        grad.addColorStop(1, "#fff")
-        ctx.fillStyle = grad
-        ctx.fillRect(x, y - lineWidth / 2, w, lineWidth)
-        grad = ctx.createLinearGradient(x + w -lineWidth, y, x + w + lineWidth, y)
-        grad.addColorStop(0, "#fff")
-        grad.addColorStop(0.5, color)
-        grad.addColorStop(1, "#fff")
-        ctx.fillStyle = grad
-        ctx.fillRect(x + w - lineWidth / 2, y, lineWidth, h)
-        grad = ctx.createLinearGradient(x, y + h - lineWidth, x, y + h + lineWidth)
-        grad.addColorStop(0, "#fff")
-        grad.addColorStop(0.5, color)
-        grad.addColorStop(1, "#fff")
-        ctx.fillStyle = grad
-        ctx.fillRect(x, y + h - lineWidth / 2, w, lineWidth)
     }
 
     draw() {
