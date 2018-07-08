@@ -18,3 +18,8 @@ class CoolDown {
         this.current = this.max
     }
 }
+
+
+class Score {
+
+}

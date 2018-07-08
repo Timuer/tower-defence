@@ -6,6 +6,7 @@ class UI {
         this.y = 0
         this.width = this.image.width
         this.height = this.image.height
+        this.exists = true
     }
 
     update() {
@@ -36,6 +37,123 @@ class EditBox extends UI {
     draw() {
         super.draw()
         this.drawText()
+    }
+}
+
+class TowerBase extends UI {
+    constructor(game, image) {
+        super(game, image)
+    }
+}
+
+class MoneyBox extends UI {
+    constructor(game, image, x, y, count) {
+        super(game, image)
+        this.x = x
+        this.y = y
+        this.offsetX = 30
+        this.offsetY = 10
+        this.count = count
+        this.setupNumbers()
+    }
+
+    setupNumbers() {
+        var numberImage = this.game.imageByName("numbers")
+        this.numbers = new Number(this.game, numberImage, this.count)
+        this.calNumberPos()
+    }
+
+    calNumberPos() {
+        this.numbers.x = this.x + this.offsetX + (this.width - this.offsetX - this.numbers.calWidth()) / 2
+        this.numbers.y = this.y + this.offsetY
+    }
+
+    changeCount(count) {
+        this.count += count
+        this.numbers.changeNumber(this.count)
+        this.calNumberPos()
+    }
+
+    increase(count) {
+        this.changeCount(count)
+    }
+
+    decrease(count) {
+        this.changeCount(-count)
+    }
+
+    draw() {
+        super.draw()
+        this.numbers.draw()
+    }
+}
+
+class Number extends UI {
+    constructor(game, image, num) {
+        super(game, image)
+        this.num = num
+        this.init()
+    }
+
+    init() {
+        this.drawParameters = {}
+        // 每个单独数字的宽和高
+        this.w = this.image.width / 10
+        this.h = this.image.height
+        for (var i = 0; i < 10; i++) {
+            var param = {}
+            param["sx"] = i * this.w
+            param["sy"] = 0
+            param["sWidth"] = this.w
+            param["sHeight"] = this.h
+            this.drawParameters[String(i)] = param
+        }
+    }
+
+    calWidth() {
+        var nums = this.getIsolatedNumbers()
+        return nums.length * this.w
+    }
+
+    changeNumber(n) {
+        this.num = n
+    }
+
+    getNumber() {
+        return this.num
+    }
+
+    getIsolatedNumbers() {
+        var n = this.num
+        var nums = []
+        var len = String(n).length
+        var s = -1
+        for (var i = 0; i < len; i++) {
+            s = n % 10
+            n = (n - s) / 10
+            nums.push(s)
+        }
+        return nums
+    }
+
+    drawSingleNumber(num, x, y) {
+        var ctx = this.game.context
+        var p = this.drawParameters[String(num)]
+        ctx.drawImage(this.image.img, p.sx, p.sy, p.sWidth, p.sHeight, x, y, p.sWidth, p.sHeight)
+    }
+
+    drawNumbers() {
+        var nums = this.getIsolatedNumbers()
+        var len = nums.length
+        for (var i = 0; i < len; i++) {
+            var x = this.x + i * this.w
+            var y = this.y
+            this.drawSingleNumber(nums.pop(), x, y)
+        }
+    }
+
+    draw() {
+        this.drawNumbers()
     }
 }
 

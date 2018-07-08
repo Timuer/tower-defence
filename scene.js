@@ -88,11 +88,36 @@ class GameScene extends Scene {
         var g = this
         g.setupBackground()
         g.setupGrid()
+        g.setupUI()
         g.setupModels()
         g.setupRoute()
         g.setupEnemies()
         g.setupTowers()
         g.setupActions()
+        // g.setupMoney()
+    }
+
+    setupUI() {
+        this.setupMoney()
+        this.setupTowerBase()
+    }
+
+    setupMoney() {
+        var boxImage = this.game.imageByName("moneyBox")
+        var x = 0
+        var y = this.game.canvas.height - boxImage.height
+        this.money = new MoneyBox(this.game, boxImage, x, y, 100)
+        this.addElement(this.money)
+    }
+
+    setupTowerBase() {
+        var baseImage = this.game.imageByName("towerBase")
+        var base = new TowerBase(this.game, baseImage)
+        var offsetX = 10
+        var offsetY = 10
+        base.x = this.game.canvas.width - baseImage.width + offsetX
+        base.y = this.game.canvas.height - baseImage.height + offsetY
+        this.addElement(base)
     }
 
     setupBackground() {
@@ -145,11 +170,14 @@ class GameScene extends Scene {
         this.models = []
         var w = this.game.canvas.width
         var h = this.game.canvas.height
-        for (var i = 0; i < 4; i++) {
-            var name = "model" + i
-            var t = new TowerModel(this.game, this.game.imageByName(name), this.game.imageByName("greymodel" + i))
-            t.x = w - (i + 1) * t.width
-            t.y = h - t.height
+        var offsetX = -40
+        var offsetY = -20
+        var modelNames = ["小炮", "大炮", "歼灭炮", "毁世炮"]
+        for (var i = 0; i < modelNames.length; i++) {
+            var name = modelNames[i]
+            var t = new TowerModel(this.game, this.game.imageByName(name), this.game.imageByName("灰色" + name), name)
+            t.x = w - (i + 1) * t.width + offsetX
+            t.y = h - t.height + offsetY
             this.addModel(t)
         }
     }
@@ -236,6 +264,7 @@ class GameScene extends Scene {
             if (isPointInSquare(x, y, m.x, m.y, m.width, m.height)) {
                 if (m.isActive()) {
                     var t = m.createTower()
+                    this.money.decrease(m.price)
                     // 鼠标位置在塔模型上的偏移
                     t.towerOffsetX = x - m.x
                     t.towerOffsetY = y - m.y
@@ -325,6 +354,7 @@ class GameScene extends Scene {
         t.findTarget(this.enemies)
         if (t.target) {
             if (t.target.currentLife <= 0) {
+                this.money.increase(t.target.reward)
                 t.target.die()
                 t.target = null
             }

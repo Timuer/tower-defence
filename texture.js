@@ -28,11 +28,13 @@ class AbstractTexture {
 }
 
 class TowerModel extends AbstractTexture {
-    constructor(game, image, greyImage) {
+    constructor(game, image, greyImage, name) {
         super(game, image)
+        this.name = name
         this.towerOffsetX = 0
         this.towerOffsetY = 0
         this.greyImage = greyImage
+        this.price = 20
         this.setupCoolDown()
     }
 
@@ -49,7 +51,8 @@ class TowerModel extends AbstractTexture {
     }
 
     isActive() {
-        return this.coolDown.isActive()
+        var s = this.game.scene
+        return this.coolDown.isActive() && s.money.count > 0
     }
 
     updateCoolDown() {
@@ -195,6 +198,7 @@ class Enemy extends AbstractTexture {
     constructor(game, image, route) {
         super(game, image)
         this.route = route
+        this.reward = 20
         this.init()
     }
 
@@ -204,7 +208,7 @@ class Enemy extends AbstractTexture {
     }
 
     setupLife() {
-        this.maxLife = 20
+        this.maxLife = 10
         this.currentLife = this.maxLife
     }
 
