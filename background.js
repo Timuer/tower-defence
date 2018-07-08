@@ -46,7 +46,7 @@ class Background {
     }
 
     drawLand() {
-        var landList = missionMap[this.game.mission]
+        var landList = this.game.config["missionMap"]
         var index = 0
         for (var l of landList) {
             var x = l[1] * this.width

@@ -1,13 +1,18 @@
 class Game {
     constructor(imgPaths) {
         window.fps = 50
-        this.mission = 0
+        this.setupMission()
         // 画布、图片资源
         this.setupBasicResource()
         // 游戏场景
         this.setupScene()
         // 外部设备事件
         this.setupActions()
+    }
+
+    setupMission() {
+        this.mission = 0
+        this.config = missionConfig[this.mission]
     }
 
     setupBasicResource() {
@@ -177,6 +182,20 @@ class Game {
 
     draw() {
         this.scene.draw()
+    }
+
+    nextMission() {
+        this.mission += 1
+        if (this.mission >= this.config.length - 1) {
+            this.gameOver()
+        } else {
+            this.config = missionConfig[this.mission]
+            this.scene = this.scenes["game"].new(this, this.scene.moneyCount)
+        }
+    }
+
+    gameOver() {
+        this.currentScene = "end"
     }
 
     clearCanvas() {

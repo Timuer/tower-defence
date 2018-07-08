@@ -36,47 +36,21 @@ class TowerModel extends AbstractTexture {
         this.greyImage = greyImage
         this.x = x
         this.y = y
-        this.towerConfig = {
-            "attack": {
-                "小炮": 1,
-                "大炮": 2,
-                "歼灭炮": 5,
-                "毁世炮": 10,
-            },
-            "range": {
-                "小炮": 150,
-                "大炮": 200,
-                "歼灭炮": 250,
-                "毁世炮": 300,
-            },
-            "price": {
-                "小炮": 20,
-                "大炮": 60,
-                "歼灭炮": 200,
-                "毁世炮": 500,
-            },
-            "coolDownTime": {
-                "小炮": 100,
-                "大炮": 150,
-                "歼灭炮": 200,
-                "毁世炮": 300,
-            }
-        }
-        this.setupTowerConfig()
-        this.setupCoolDown()
+        this.setupConfig()
+        this.setupTower()
         this.setupTip()
     }
 
-    setupTowerConfig() {
-        this.price = this.towerConfig["price"][this.name]
-        this.attack = this.towerConfig["attack"][this.name]
-        this.range = this.towerConfig["range"][this.name]
-        this.coolDownTime = this.towerConfig["coolDownTime"][this.name]
+    setupConfig() {
+        this.config = this.game.config["tower"]
     }
 
-    setupCoolDown() {
-        var t = this.towerConfig.coolDownTime[this.name]
-        this.coolDown = new CoolDown(t)
+    setupTower() {
+        this.price = this.config["price"][this.name]
+        this.attack = this.config["attack"][this.name]
+        this.range = this.config["range"][this.name]
+        this.coolDownTime = this.config["coolDownTime"][this.name]
+        this.coolDown = new CoolDown(this.coolDownTime)
     }
 
     setupTip() {
@@ -283,24 +257,29 @@ class Enemy extends AbstractTexture {
     constructor(game, image, route) {
         super(game, image)
         this.route = route
-        this.reward = 20
         this.init()
     }
 
     init() {
+        this.setupConfig()
         this.setupLife()
         this.setupMovement()
+        this.setupReward()
+    }
+
+    setupConfig() {
+        this.config = this.game.config["enemy"]
     }
 
     setupLife() {
-        this.maxLife = 10
+        this.maxLife = this.config["life"]
         this.currentLife = this.maxLife
     }
 
     setupMovement() {
         this.routeIndex = 0
         this.currentDistance = 0
-        this.speed = 2
+        this.speed = this.config["speed"]
         this.move = {
             left: () => this.x -= this.speed,
             right: () => this.x += this.speed,
@@ -309,9 +288,13 @@ class Enemy extends AbstractTexture {
         }
     }
 
+    setupReward() {
+        this.reward = this.config["reward"]
+    }
+
     moveOnRoute() {
         if (this.routeIndex == this.route.length) {
-            this.game.currentScene = "end"
+            this.game.gameOver()
             return
         }
         var step = this.route[this.routeIndex]

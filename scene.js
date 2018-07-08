@@ -5,8 +5,8 @@ class Scene {
         this.elements = []
     }
 
-    static new(game) {
-        return new this(game)
+    static new(...args) {
+        return new this(...args)
     }
 
     addElement(elem) {
@@ -78,14 +78,16 @@ class StartScene extends Scene {
 }
 
 class GameScene extends Scene {
-    constructor(game) {
+    constructor(game, moneyCount = 50) {
         super(game)
         this.sceneName = "game"
+        this.moneyCount = moneyCount
         this.init()
     }
 
     init() {
         var g = this
+        g.setupConfig()
         g.setupBackground()
         g.setupGrid()
         g.setupRoute()
@@ -97,6 +99,10 @@ class GameScene extends Scene {
         // g.setupMoney()
     }
 
+    setupConfig() {
+        this.missionMap = this.game.config["missionMap"]
+    }
+
     setupUI() {
         this.setupMoney()
         this.setupTowerBase()
@@ -106,7 +112,7 @@ class GameScene extends Scene {
         var boxImage = this.game.imageByName("moneyBox")
         var x = 0
         var y = this.game.canvas.height - boxImage.height
-        this.money = new MoneyBox(this.game, boxImage, x, y, 80)
+        this.money = new MoneyBox(this.game, boxImage, x, y, this.moneyCount)
         this.addElement(this.money)
     }
 
@@ -148,7 +154,7 @@ class GameScene extends Scene {
         var gridX = x - x % this.gridWidth
         var gridY = y - y % this.gridHeight
         this.chosenGrid = [gridX, gridY]
-        for (var m of missionMap[this.game.mission]) {
+        for (var m of this.missionMap) {
             var x = m[1] * this.gridWidth
             var y = m[0] * this.gridHeight
             if (gridX == x && gridY == y) {
@@ -185,7 +191,7 @@ class GameScene extends Scene {
 
     setupRoute() {
         this.route = []
-        var m = missionMap[this.game.mission]
+        var m = this.missionMap
         var nextStep = ""
         var dif = 0
         var route = []
@@ -221,7 +227,7 @@ class GameScene extends Scene {
         var w = this.gridWidth
         var h = this.gridHeight
         var firstDirection = this.route[0][0]
-        var firstPos = missionMap[this.game.mission][0]
+        var firstPos = this.missionMap[0]
         // 根据栅格的宽度和敌军图片的宽度确定初始位置
         var x = firstPos[1] * w + (w - 50) / 2
         var y = firstPos[0] * h + (h - 45) / 2
@@ -353,6 +359,9 @@ class GameScene extends Scene {
             this.updateTarget(t)
             this.updateBullets(t)
         }
+        if (this.enemies.length == 0) {
+            this.game.nextMission()
+        }
     }
 
     updateBullets(tower) {
@@ -375,6 +384,8 @@ class GameScene extends Scene {
         if (t.target) {
             if (t.target.currentLife <= 0) {
                 this.money.increase(t.target.reward)
+                this.moneyCount = this.money.count
+                // log(this.moneyCount)
                 t.target.die()
                 t.target = null
             }
