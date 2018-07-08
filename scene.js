@@ -88,11 +88,11 @@ class GameScene extends Scene {
         var g = this
         g.setupBackground()
         g.setupGrid()
-        g.setupUI()
-        g.setupModels()
         g.setupRoute()
+        g.setupUI()
         g.setupEnemies()
         g.setupTowers()
+        g.setupModels()
         g.setupActions()
         // g.setupMoney()
     }
@@ -174,9 +174,11 @@ class GameScene extends Scene {
         var modelNames = ["毁世炮", "歼灭炮", "大炮", "小炮"]
         for (var i = 0; i < modelNames.length; i++) {
             var name = modelNames[i]
-            var t = new TowerModel(this.game, this.game.imageByName(name), this.game.imageByName("灰色" + name), name)
-            t.x = w - (i + 1) * 100
-            t.y = h - t.height + offsetY
+            var towerImage = this.game.imageByName(name)
+            var greyTowerImage = this.game.imageByName("灰色" + name)
+            var x = w - (i + 1) * 100
+            var y = h - towerImage.height + offsetY
+            var t = new TowerModel(this.game, towerImage, greyTowerImage, name, x, y)
             this.addModel(t)
         }
     }
@@ -258,18 +260,24 @@ class GameScene extends Scene {
         this.chosenTower = null
     }
 
-    chooseTower(x, y) {
+    getTowerModel(x, y) {
         for (var m of this.models) {
             if (isPointInSquare(x, y, m.x, m.y, m.width, m.height)) {
-                if (m.isActive()) {
-                    var t = m.createTower()
-                    this.money.decrease(m.price)
-                    // 鼠标位置在塔模型上的偏移
-                    t.towerOffsetX = x - m.x
-                    t.towerOffsetY = y - m.y
-                    this.chosenTower = t
-                }
+                return m
             }
+        }
+        return null
+    }
+
+    chooseTower(x, y) {
+        var m = this.getTowerModel(x, y)
+        if (m && m.isActive()) {
+            var t = m.createTower()
+            this.money.decrease(m.price)
+            // 鼠标位置在塔模型上的偏移
+            t.towerOffsetX = x - m.x
+            t.towerOffsetY = y - m.y
+            this.chosenTower = t
         }
     }
 
@@ -291,6 +299,19 @@ class GameScene extends Scene {
                 g.chooseGrid(x, y)
                 t.x = x - t.towerOffsetX
                 t.y = y - t.towerOffsetY
+            }
+        })
+
+        g.game.registerMouseAction("hover", function(event) {
+            var x = event.offsetX
+            var y = event.offsetY
+            var m = g.getTowerModel(x, y)
+            if (m !== null) {
+                m.generateTip()
+            } else {
+                for (var m of g.models) {
+                    m.removeTip()
+                }
             }
         })
 
@@ -402,7 +423,6 @@ class PauseScene extends Scene {
         ctx.fillText("游戏结束", w / 2 - 200, h / 2 + 50)
     }
 }
-
 
 class EndScene extends Scene {
     constructor(game) {

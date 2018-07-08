@@ -28,12 +28,14 @@ class AbstractTexture {
 }
 
 class TowerModel extends AbstractTexture {
-    constructor(game, image, greyImage, name) {
+    constructor(game, image, greyImage, name, x, y) {
         super(game, image)
         this.name = name
         this.towerOffsetX = 0
         this.towerOffsetY = 0
         this.greyImage = greyImage
+        this.x = x
+        this.y = y
         this.towerConfig = {
             "attack": {
                 "小炮": 1,
@@ -62,17 +64,27 @@ class TowerModel extends AbstractTexture {
         }
         this.setupTowerConfig()
         this.setupCoolDown()
+        this.setupTip()
     }
 
     setupTowerConfig() {
         this.price = this.towerConfig["price"][this.name]
         this.attack = this.towerConfig["attack"][this.name]
         this.range = this.towerConfig["range"][this.name]
+        this.coolDownTime = this.towerConfig["coolDownTime"][this.name]
     }
 
     setupCoolDown() {
         var t = this.towerConfig.coolDownTime[this.name]
         this.coolDown = new CoolDown(t)
+    }
+
+    setupTip() {
+        this.onTip = false
+        var tip = new Tip(this.game, this.game.imageByName("tip"))
+        tip.x = this.x - tip.width / 2
+        tip.y = this.y - tip.height
+        this.tip = tip
     }
 
     createTower() {
@@ -81,6 +93,14 @@ class TowerModel extends AbstractTexture {
         t.x = this.x
         t.y = this.y
         return t
+    }
+
+    generateTip() {
+        this.onTip = true
+    }
+
+    removeTip() {
+        this.onTip = false
     }
 
     isActive() {
@@ -103,6 +123,9 @@ class TowerModel extends AbstractTexture {
 
     draw() {
         this.drawCoolDownBar()
+        if (this.onTip) {
+            this.drawTip()
+        }
     }
 
     drawCoolDownBar() {
@@ -124,6 +147,35 @@ class TowerModel extends AbstractTexture {
             var dHeight = sHeight
             ctx.drawImage(this.image.img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
         }
+    }
+
+    drawTip() {
+        this.tip.draw()
+        var lines = {
+            attack: "攻击力：{}",
+            range: "攻击范围：{}",
+            coolDownTime: "冷却时间: {}",
+            price: "价格：{}",
+        }
+        var keys = Object.keys(lines)
+        var ctx = this.game.context
+        ctx.font = "15px sans-serif"
+        ctx.fillStyle = "RGBA(225, 225, 255, 0.7)"
+        var offsetX = 20
+        var offsetY = 40
+        var x = this.x - this.tip.width / 2 + offsetX
+        var y = this.y - this.tip.height + offsetY
+        for (var k of keys) {
+            var l = lines[k].replace("{}", this[k])
+            ctx.fillText(l, x, y)
+            y += 30
+        }
+    }
+}
+
+class Tip extends AbstractTexture {
+    constructor(game, image) {
+        super(game, image)
     }
 }
 

@@ -45,6 +45,7 @@ class Game {
             "down": [],
             "up": [],
             "drag": [],
+            "hover": [],
             "click": [],
         }
         window.addEventListener("mousedown", event => {
@@ -56,6 +57,10 @@ class Game {
         window.addEventListener("mousemove", event => {
             if (this.onMouseDrag) {
                 for (var a of this.mouseActions["drag"]) {
+                    a(event)
+                }
+            } else {
+                for (var a of this.mouseActions["hover"]) {
                     a(event)
                 }
             }
@@ -198,6 +203,7 @@ var __main = function() {
         editBox: "img/editBox.png",
         moneyBox: "img/moneyBox.png",
         numbers: "img/numbers.png",
+        tip: "img/tip.png",
         grass0: "img/grass0.png",
         grass1: "img/grass1.png",
         grass2: "img/grass2.png",
