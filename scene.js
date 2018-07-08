@@ -234,7 +234,7 @@ class GameScene extends Scene {
     chooseTower(x, y) {
         for (var m of this.models) {
             if (isPointInSquare(x, y, m.x, m.y, m.width, m.height)) {
-                if (m.useable) {
+                if (m.isActive()) {
                     var t = m.createTower()
                     // 鼠标位置在塔模型上的偏移
                     t.towerOffsetX = x - m.x

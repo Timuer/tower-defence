@@ -28,33 +28,37 @@ class AbstractTexture {
 }
 
 class TowerModel extends AbstractTexture {
-    constructor(game, image, greyImage, coolDownTime=200) {
+    constructor(game, image, greyImage) {
         super(game, image)
         this.towerOffsetX = 0
         this.towerOffsetY = 0
-        this.coolDownTime = coolDownTime
-        this.coolDown = 0
         this.greyImage = greyImage
-        this.useable = true
+        this.setupCoolDown()
+    }
+
+    setupCoolDown() {
+        this.coolDown = new CoolDown(200)
     }
 
     createTower() {
-        this.coolDown = this.coolDownTime
-        this.useable = false
+        this.coolDown.reset()
         var t = new Tower(this.game, this.image)
         t.x = this.x
         t.y = this.y
         return t
     }
 
+    isActive() {
+        return this.coolDown.isActive()
+    }
+
+    updateCoolDown() {
+        this.coolDown.update()
+    }
+
     update() {
         super.update()
-        if (this.coolDown > 0) {
-            this.coolDown -= 1
-        }
-        if (this.coolDown == 0) {
-            this.useable = true
-        }
+        this.updateCoolDown()
     }
 
     draw() {
@@ -66,7 +70,7 @@ class TowerModel extends AbstractTexture {
         var y = this.y
         var w = this.width
         var h = this.height
-        var proportion = this.coolDown / this.coolDownTime
+        var proportion = this.coolDown.current / this.coolDown.max
         var ctx = this.game.context
         ctx.drawImage(this.greyImage.img, this.x, this.y)
         var sx = 0
@@ -100,7 +104,7 @@ class Tower extends AbstractTexture {
 
     setupBullets() {
         this.bullets = []
-        this.coolDown = 10
+        this.bulletCoolDown = new CoolDown(20)
     }
 
     findTarget(enemies) {
@@ -126,11 +130,9 @@ class Tower extends AbstractTexture {
     }
 
     updateBullets() {
-        if (this.coolDown > 0) {
-            this.coolDown -= 1
-        }
-        if (this.coolDown == 0 && this.target) {
-            this.coolDown = 10
+        this.bulletCoolDown.update()
+        if (this.bulletCoolDown.isActive() && this.target) {
+            this.bulletCoolDown.reset()
             var bulletImage = this.game.imageByName("bullet")
             var x = this.x + (this.width - bulletImage.width) / 2
             var y = this.y + (this.height - bulletImage.height) / 2
