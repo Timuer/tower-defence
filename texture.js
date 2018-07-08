@@ -34,25 +34,62 @@ class TowerModel extends AbstractTexture {
         this.towerOffsetX = 0
         this.towerOffsetY = 0
         this.greyImage = greyImage
-        this.price = 20
+        this.towerConfig = {
+            "attack": {
+                "小炮": 1,
+                "大炮": 2,
+                "歼灭炮": 5,
+                "毁世炮": 10,
+            },
+            "range": {
+                "小炮": 150,
+                "大炮": 200,
+                "歼灭炮": 250,
+                "毁世炮": 300,
+            },
+            "price": {
+                "小炮": 20,
+                "大炮": 60,
+                "歼灭炮": 200,
+                "毁世炮": 500,
+            },
+            "coolDownTime": {
+                "小炮": 100,
+                "大炮": 150,
+                "歼灭炮": 200,
+                "毁世炮": 300,
+            }
+        }
+        this.setupTowerConfig()
         this.setupCoolDown()
     }
 
+    setupTowerConfig() {
+        this.price = this.towerConfig["price"][this.name]
+        this.attack = this.towerConfig["attack"][this.name]
+        this.range = this.towerConfig["range"][this.name]
+    }
+
     setupCoolDown() {
-        this.coolDown = new CoolDown(200)
+        var t = this.towerConfig.coolDownTime[this.name]
+        this.coolDown = new CoolDown(t)
     }
 
     createTower() {
         this.coolDown.reset()
-        var t = new Tower(this.game, this.image)
+        var t = new Tower(this.game, this.image, this.attack, this.range)
         t.x = this.x
         t.y = this.y
         return t
     }
 
     isActive() {
+        return this.coolDown.isActive() && this.isMoneyEnough()
+    }
+
+    isMoneyEnough() {
         var s = this.game.scene
-        return this.coolDown.isActive() && s.money.count > 0
+        return s.money.count >= this.price
     }
 
     updateCoolDown() {
@@ -73,25 +110,21 @@ class TowerModel extends AbstractTexture {
         var y = this.y
         var w = this.width
         var h = this.height
-        var proportion = this.coolDown.current / this.coolDown.max
         var ctx = this.game.context
         ctx.drawImage(this.greyImage.img, this.x, this.y)
-        var sx = 0
-        var sy = this.image.height * proportion
-        var sWidth = this.image.width
-        var sHeight = this.image.height * (1 - proportion)
-        var dx = this.x
-        var dy = this.y + sy
-        var dWidth = sWidth
-        var dHeight = sHeight
-        ctx.drawImage(this.image.img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
-
-        // ctx.fillStyle = "rgba(0, 255, 255, 0.3)"
-        // ctx.fillRect(x, y, w, h)
-        // ctx.fillStyle = "rgba(0, 255, 255, 0.6)"
-        // ctx.fillRect(x, y + h * proportion, w, h * (1 - proportion))
+        if (this.isMoneyEnough()) {
+            var proportion = this.coolDown.current / this.coolDown.max
+            var sx = 0
+            var sy = this.image.height * proportion
+            var sWidth = this.image.width
+            var sHeight = this.image.height * (1 - proportion)
+            var dx = this.x
+            var dy = this.y + sy
+            var dWidth = sWidth
+            var dHeight = sHeight
+            ctx.drawImage(this.image.img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+        }
     }
-
 }
 
 class Tower extends AbstractTexture {

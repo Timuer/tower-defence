@@ -106,7 +106,7 @@ class GameScene extends Scene {
         var boxImage = this.game.imageByName("moneyBox")
         var x = 0
         var y = this.game.canvas.height - boxImage.height
-        this.money = new MoneyBox(this.game, boxImage, x, y, 100)
+        this.money = new MoneyBox(this.game, boxImage, x, y, 80)
         this.addElement(this.money)
     }
 
@@ -170,13 +170,12 @@ class GameScene extends Scene {
         this.models = []
         var w = this.game.canvas.width
         var h = this.game.canvas.height
-        var offsetX = -40
         var offsetY = -20
-        var modelNames = ["小炮", "大炮", "歼灭炮", "毁世炮"]
+        var modelNames = ["毁世炮", "歼灭炮", "大炮", "小炮"]
         for (var i = 0; i < modelNames.length; i++) {
             var name = modelNames[i]
             var t = new TowerModel(this.game, this.game.imageByName(name), this.game.imageByName("灰色" + name), name)
-            t.x = w - (i + 1) * t.width + offsetX
+            t.x = w - (i + 1) * 100
             t.y = h - t.height + offsetY
             this.addModel(t)
         }
