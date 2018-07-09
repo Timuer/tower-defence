@@ -12,6 +12,7 @@ class Game {
 
     setupMission() {
         this.mission = 0
+        this.score = 0
         this.config = missionConfig[this.mission]
     }
 
@@ -198,6 +199,14 @@ class Game {
         this.currentScene = "end"
     }
 
+    restart() {
+        this.score = 0
+        this.mission = 0
+        this.config = missionConfig[this.mission]
+        this.currentScene = "start"
+        this.scene = this.scenes["start"].new(this)
+    }
+
     clearCanvas() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
     }
@@ -218,11 +227,15 @@ var __main = function() {
         startBg: "img/startBg.png",
         startTitle: "img/startTitle.png",
         btn: "img/btn.png",
+        btn_grey: "img/btn_grey.png",
+        back: "img/back.png",
+        back_grey: "img/back_grey.png",
         towerBase: "img/towerBase.png",
         editBox: "img/editBox.png",
         moneyBox: "img/moneyBox.png",
         numbers: "img/numbers.png",
         tip: "img/tip.png",
+        trophy: "img/trophy.png",
         grass0: "img/grass0.png",
         grass1: "img/grass1.png",
         grass2: "img/grass2.png",

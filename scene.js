@@ -50,28 +50,53 @@ class StartScene extends Scene {
     }
 
     init() {
-        var startBg = new StartBg(this.game, this.game.imageByName("startBg"))
-        this.addElement(startBg)
+        this.setupBg()
+        this.setupBox()
+        this.setupBtn()
+        this.registerMouseAction()
+    }
+
+    setupBox() {
         var editBox = new EditBox(this.game, this.game.imageByName("editBox"))
         editBox.x = (this.width - editBox.width) / 2
         editBox.y = (this.height - editBox.height) / 2
         this.addElement(editBox)
-        var btn = new StartButton(this.game, this.game.imageByName("btn"))
-        btn.x = (this.width - btn.width) / 2
-        btn.y = this.height - btn.height - 100
+    }
+
+    setupBtn() {
+        var btnGreyImage = this.game.imageByName("btn_grey")
+        var btnImage = this.game.imageByName("btn")
+        var x = (this.width - btnImage.width) / 2
+        var y = this.height - btnImage.height - 100
+        var btn = new StartButton(this.game, btnGreyImage, btnImage, x, y)
         this.addElement(btn)
         this.startBtn = btn
-        this.registerMouseAction()
+    }
+
+    setupBg() {
+        var startBg = new StartBg(this.game, this.game.imageByName("startBg"))
+        this.addElement(startBg)
     }
 
     registerMouseAction() {
         var p = this
+        var b = p.startBtn
         p.game.registerMouseAction("click", function(event) {
             var x = event.offsetX
             var y = event.offsetY
-            var s = p.startBtn
-            if (isPointInSquare(x, y, s.x, s.y, s.width, s.height)) {
+            if (isPointInSquare(x, y, b.x, b.y, b.width, b.height)) {
                 p.game.currentScene = "game"
+            }
+        })
+        p.game.registerMouseAction("hover", function(event) {
+            var x = event.offsetX
+            var y = event.offsetY
+            if (isPointInSquare(x, y, b.x, b.y, b.width, b.height)) {
+                b.onHover = true
+                p.game.canvas.style.cursor = "pointer"
+            } else {
+                b.onHover = false
+                p.game.canvas.style.cursor = "default"
             }
         })
     }
@@ -305,6 +330,7 @@ class GameScene extends Scene {
         g.game.registerMouseAction("drag", function(event) {
             var t = g.chosenTower
             if (t !== null) {
+                g.game.canvas.style.cursor = "pointer"
                 t.showRange = true
                 var x = event.offsetX
                 var y = event.offsetY
@@ -319,8 +345,10 @@ class GameScene extends Scene {
             var y = event.offsetY
             var m = g.getTowerModel(x, y)
             if (m !== null) {
+                g.game.canvas.style.cursor = "pointer"
                 m.generateTip()
             } else {
+                g.game.canvas.style.cursor = "default"
                 for (var m of g.models) {
                     m.removeTip()
                 }
@@ -330,6 +358,7 @@ class GameScene extends Scene {
         g.game.registerMouseAction("up", function(event) {
             var t = g.chosenTower
             if (t) {
+                g.game.canvas.style.cursor = "default"
                 t.showRange = false
                 var c = g.chosenGrid
                 if (g.gridEnable) {
@@ -391,6 +420,7 @@ class GameScene extends Scene {
             if (t.target.currentLife <= 0) {
                 this.money.increase(t.target.reward)
                 this.moneyCount = this.money.count
+                this.game.score += 100
                 // log(this.moneyCount)
                 t.target.die()
                 t.target = null
@@ -410,7 +440,6 @@ class GameScene extends Scene {
 
     drawInterludeText() {
         var ctx = this.game.context
-        log(ctx)
         ctx.font = "100px sans-serif"
         ctx.fillStyle = "#000"
         var w = this.game.canvas.width
@@ -465,14 +494,75 @@ class EndScene extends Scene {
     constructor(game) {
         super(game)
         this.sceneName = "end"
+        this.width = this.game.canvas.width
+        this.height = this.game.canvas.height
+        this.setupBackBtn()
+        this.registerMouseAction()
+    }
+
+    setupBackBtn() {
+        var greyImage = this.game.imageByName("back_grey")
+        var lightImage = this.game.imageByName("back")
+        var offsetY = -80
+        var x = (this.width - greyImage.width) / 2
+        var y = this.height - greyImage.width + offsetY
+        this.btn = new BackButton(this.game, greyImage, lightImage, x, y)
+    }
+
+    registerMouseAction() {
+        var p = this
+        var b = p.btn
+        p.game.registerMouseAction("hover", function(event) {
+            var x = event.offsetX
+            var y = event.offsetY
+            if (isPointInSquare(x, y, b.x, b.y, b.width, b.height)) {
+                p.game.canvas.style.cursor = "pointer"
+                b.onHover = true
+            } else {
+                p.game.canvas.style.cursor = "default"
+                b.onHover = false
+            }
+        })
+        p.game.registerMouseAction("click", function(event) {
+            var x = event.offsetX
+            var y = event.offsetY
+            if (isPointInSquare(x, y, b.x, b.y, b.width, b.height)) {
+                p.game.restart()
+            }
+        })
+    }
+
+    drawBg() {
+        var bg = this.game.imageByName("startBg")
+        this.game.drawImage(bg)
+    }
+
+    drawTrophy() {
+        var t = this.game.imageByName("trophy")
+        var offsetY = -120
+        t.x = (this.width - t.width) / 2
+        t.y = (this.height - t.height) / 2 + offsetY
+        this.game.drawImage(t)
+    }
+
+    drawScore() {
+        var ctx = this.game.context
+        var txt = "您的得分：" + String(this.game.score)
+        ctx.font = "60px sans-serif"
+        ctx.fillStyle = "RGB(255, 221, 17)"
+        var offsetX = -180
+        var offsetY = 50
+        ctx.fillText(txt, this.width / 2 + offsetX, this.height / 2 + offsetY)
+    }
+
+    drawBackBtn() {
+        this.btn.draw()
     }
 
     draw() {
-        var ctx = this.game.context
-        var w = this.game.canvas.width
-        var h = this.game.canvas.height
-        ctx.font = "100px sans-serif"
-        ctx.fillStyle = "#000"
-        ctx.fillText("游戏结束", w / 2 - 200, h / 2 + 50)
+        this.drawBg()
+        this.drawTrophy()
+        this.drawScore()
+        this.drawBackBtn()
     }
 }

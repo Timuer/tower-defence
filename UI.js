@@ -157,9 +157,35 @@ class Number extends UI {
     }
 }
 
-class StartButton extends UI {
-    constructor(game, image) {
+class Button extends UI {
+    constructor(game, image, lightImage, x, y) {
         super(game, image)
+        this.lightImage = lightImage
+        this.setupPosition(x, y)
+        this.onHover = false
+    }
+
+    setupPosition(x, y) {
+        this.x = x
+        this.y = y
+        this.image.x = this.x
+        this.image.y = this.y
+        this.lightImage.x = this.x
+        this.lightImage.y = this.y
+    }
+
+    draw() {
+        if (this.onHover) {
+            this.game.drawImage(this.lightImage)
+        } else {
+            this.game.drawImage(this.image)
+        }
+    }
+}
+
+class StartButton extends Button {
+    constructor(game, image, lightImage, x, y) {
+        super(game, image, lightImage, x, y)
     }
 
     drawText() {
@@ -172,6 +198,12 @@ class StartButton extends UI {
     draw() {
         super.draw()
         this.drawText()
+    }
+}
+
+class BackButton extends Button {
+    constructor(game, image, lightImage, x, y) {
+        super(game, image, lightImage, x, y)
     }
 }
 
