@@ -186,7 +186,7 @@ class Game {
 
     nextMission() {
         this.mission += 1
-        if (this.mission >= this.config.length - 1) {
+        if (this.mission >= missionConfig.length) {
             this.gameOver()
         } else {
             this.config = missionConfig[this.mission]

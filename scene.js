@@ -96,7 +96,13 @@ class GameScene extends Scene {
         g.setupTowers()
         g.setupModels()
         g.setupActions()
-        // g.setupMoney()
+        g.setupInterlude()
+    }
+
+    setupInterlude() {
+        this.interludeTime = 100
+        var level = this.game.mission + 1
+        this.interludeText = "第 {} 关".replace("{}", String(level))
     }
 
     setupConfig() {
@@ -393,12 +399,32 @@ class GameScene extends Scene {
     }
 
     update() {
+        if (this.interludeTime > 0) {
+            this.interludeTime--
+            return
+        }
         super.update()
         this.updateWar()
         this.clear()
     }
 
+    drawInterludeText() {
+        var ctx = this.game.context
+        log(ctx)
+        ctx.font = "100px sans-serif"
+        ctx.fillStyle = "#000"
+        var w = this.game.canvas.width
+        var h = this.game.canvas.height
+        var offsetX = 150
+        var offsetY = 0
+        ctx.fillText(this.interludeText, w / 2 - offsetX, h / 2 - offsetY)
+    }
+
     draw() {
+        if (this.interludeTime > 0) {
+            this.drawInterludeText()
+            return
+        }
         super.draw()
         if (this.chosenTower) {
             this.chosenTower.draw()
