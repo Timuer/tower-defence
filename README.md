@@ -1,2 +1,2 @@
-# flapy-bird
-use javaScript to make flapy-bird from scratch
+# tower-defence
+Use mouse to drag and place towers to defende
